@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Actigraphy Data Visualization</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawCharts);
+
+    function drawCharts() {
+      const rawData = document.getElementById('dataInput').value;
+      const dataArray = rawData.split('\n').map(Number);
+
+      const minutesPerDay = 1440;
+      const totalDays = Math.ceil(dataArray.length / minutesPerDay);
+
+      const container = document.getElementById('chartsContainer');
+      container.innerHTML = ''; // Clear previous charts
+
+      for (let day = 0; day < totalDays; day++) {
+        const dayData = dataArray.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
+
+        if (dayData.length > 0) {
+          const dayInputId = 'day' + (day + 1) + 'Input';
+          const dayChartId = 'day' + (day + 1) + 'Chart';
+          const chartTitle = 'Activity Data Day ' + (day + 1);
+
+          const textarea = document.createElement('textarea');
+          textarea.id = dayInputId;
+          textarea.rows = 25;
+          textarea.cols = 80;
+          textarea.style.display = 'none';
+          textarea.value = dayData.join('\n');
+          container.appendChild(textarea);
+
+          const chartDivision = document.createElement('div');
+          chartDivision.id = dayChartId;
+          chartDivision.style.width = '900px';
+          chartDivision.style.height = '500px';
+          container.appendChild(chartDivision);
+
+          drawChart(dayInputId, dayChartId, chartTitle);
+        }
+      }
+    }
+
+    function drawChart(inputData, chartDivision, chartTitle) {
+      const rawData = document.getElementById(inputData).value;
+      const dataArray = rawData.split('\n').map(Number);
+
+      const data = new google.visualization.DataTable();
+      data.addColumn('number', 'Minute');
+      data.addColumn('number', 'Activity');
+
+      for (let i = 0; i < dataArray.length; i++) {
+        data.addRow([i, dataArray[i]]);
+      }
+
+      const options = {
+        title: chartTitle,
+        hAxis: {title: 'Minute of the Day'},
+        vAxis: {title: 'Activity Count'},
+        legend: 'none'
+      };
+
+      const chart = new google.visualization.LineChart(document.getElementById(chartDivision));
+      chart.draw(data, options);
+    }
+  </script>
+</head>
+<body>
+  <div>
+    <h1>Actigraphy Data Visualization</h1>
+    <textarea id="dataInput" rows="25" cols="80"></textarea>
+    <br>
+    <button onclick="drawCharts()">Visualize</button>
+  </div>
+  <div id="chartsContainer"></div>
+</body>
+</html>
