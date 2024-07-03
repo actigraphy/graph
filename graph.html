@@ -2,51 +2,62 @@
 <html>
 <head>
   <title>Actigraphy Data Visualization</title>
+  <!-- Load Google Charts library -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">
     google.charts.load('current', {'packages':['corechart']});
+
+    // Function called when Google Charts is loaded
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
+      // Retrieve data from textarea and parse as numbers
       const actualData = document.getElementById('dataInput').value;
       const datalist = actualData.split('\n').map(Number).filter(n => !isNaN(n));
 
+      // Basic validation for numeric data
       if (datalist.length === 0) {
         alert("No valid data provided. Please enter numeric values of data.");
         return;
       }
 
       const minutesPerDay = 1440;
-      const totalDays = Math.round(datalist.length / minutesPerDay);
+      const totalDays = Math.ceil(datalist.length / minutesPerDay);
 
       const container = document.getElementById('chartsContainer');
       container.innerHTML = ''; // Clear previous charts
 
-      for (var day = 0; day < totalDays; day++) {
+      // Iterate through each day's data
+      for (let day = 0; day < totalDays; day++) {
         const dayData = datalist.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
 
         if (dayData.length > 0) {
           const dayChartId = 'day' + (day + 1) + 'Chart';
           const chartTitle = 'Day ' + (day + 1);
 
+          // Create a new div for the chart
           const chartDivision = document.createElement('div');
           chartDivision.id = dayChartId;
           container.appendChild(chartDivision);
 
+          // Draw the chart for the current day
           drawChart(dayData, dayChartId, chartTitle);
         }
       }
     }
 
     function drawChart(dayData, chartDivision, chartTitle) {
+      // Create a new DataTable for Google Charts
       const data = new google.visualization.DataTable();
       data.addColumn('number', 'Minute');
       data.addColumn('number', 'Activity');
 
-      for (var i = 0; i < dayData.length; i++) {
+      // Add data rows based on the day's activity data
+      for (let i = 0; i < dayData.length; i++) {
         data.addRow([i, dayData[i]]);
       }
 
+      // Define chart options
       const options = {
         title: chartTitle,
         hAxis: {
@@ -77,6 +88,7 @@
         lineWidth: 2 // Customize line thickness
       };
 
+      // Create a new LineChart with the given options and data
       const chart = new google.visualization.LineChart(document.getElementById(chartDivision));
       chart.draw(data, options);
     }
@@ -85,10 +97,14 @@
 <body>
   <div>
     <h1>Actigraphy Data Visualization</h1>
+    <!-- Textarea for data input -->
+    <p>Please enter numeric data (one value per line) for each day's activity:</p>
     <textarea id="dataInput" rows="10" cols="20"></textarea>
     <br>
+    <!-- Button to trigger visualization -->
     <button onclick="drawCharts()">Visualize</button>
   </div>
+  <!-- Container for displaying charts -->
   <div id="chartsContainer"></div>
 </body>
-</html>
+  </html>
