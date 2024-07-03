@@ -8,59 +8,73 @@
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
-      const rawData = document.getElementById('dataInput').value;
-      const dataArray = rawData.split('\n').map(Number);
+      const actualData = document.getElementById('dataInput').value;
+      const datalist = actualData.split('\n').map(Number).filter(n => !isNaN(n));
+
+      if (datalist.length === 0) {
+        alert("No valid data provided. Please enter numeric values of data.");
+        return;
+      }
 
       const minutesPerDay = 1440;
-      const totalDays = Math.ceil(dataArray.length / minutesPerDay);
+      const totalDays = Math.round(datalist.length / minutesPerDay);
 
       const container = document.getElementById('chartsContainer');
       container.innerHTML = ''; // Clear previous charts
 
-      for (let day = 0; day < totalDays; day++) {
-        const dayData = dataArray.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
+      for (var day = 0; day < totalDays; day++) {
+        const dayData = datalist.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
 
         if (dayData.length > 0) {
-          const dayInputId = 'day' + (day + 1) + 'Input';
           const dayChartId = 'day' + (day + 1) + 'Chart';
-          const chartTitle = 'Activity Data Day ' + (day + 1);
-
-          const textarea = document.createElement('textarea');
-          textarea.id = dayInputId;
-          textarea.rows = 25;
-          textarea.cols = 80;
-          textarea.style.display = 'none';
-          textarea.value = dayData.join('\n');
-          container.appendChild(textarea);
+          const chartTitle = 'Day ' + (day + 1);
 
           const chartDivision = document.createElement('div');
           chartDivision.id = dayChartId;
-          chartDivision.style.width = '900px';
-          chartDivision.style.height = '500px';
           container.appendChild(chartDivision);
 
-          drawChart(dayInputId, dayChartId, chartTitle);
+          drawChart(dayData, dayChartId, chartTitle);
         }
       }
     }
 
-    function drawChart(inputData, chartDivision, chartTitle) {
-      const rawData = document.getElementById(inputData).value;
-      const dataArray = rawData.split('\n').map(Number);
-
+    function drawChart(dayData, chartDivision, chartTitle) {
       const data = new google.visualization.DataTable();
       data.addColumn('number', 'Minute');
       data.addColumn('number', 'Activity');
 
-      for (let i = 0; i < dataArray.length; i++) {
-        data.addRow([i, dataArray[i]]);
+      for (var i = 0; i < dayData.length; i++) {
+        data.addRow([i, dayData[i]]);
       }
 
       const options = {
         title: chartTitle,
-        hAxis: {title: 'Minute of the Day'},
-        vAxis: {title: 'Activity Count'},
-        legend: 'none'
+        hAxis: {
+          title: 'Clock Time',
+          gridlines: { color: 'transparent' },
+          ticks: [
+            { v: 0, f: '0000' },
+            { v: 360, f: '0600' },
+            { v: 720, f: '1200' },
+            { v: 1080, f: '1800' },
+            { v: 1440, f: '0000' }
+          ],
+          minValue: 0,
+          maxValue: 1440
+        },
+        vAxis: {
+          title: 'Counts/Mins',
+          ticks: [
+            { v: -10, f: '-10' },
+            { v: 0, f: '0' },
+            { v: 10, f: '10' },
+            { v: 20, f: '20' },
+            { v: 30, f: '30' }
+          ],
+        },
+        legend: 'none',
+        curveType: 'function', // Smooth curve for the line
+        lineWidth: 2 // Customize line thickness
       };
 
       const chart = new google.visualization.LineChart(document.getElementById(chartDivision));
@@ -71,7 +85,7 @@
 <body>
   <div>
     <h1>Actigraphy Data Visualization</h1>
-    <textarea id="dataInput" rows="25" cols="80"></textarea>
+    <textarea id="dataInput" rows="10" cols="20"></textarea>
     <br>
     <button onclick="drawCharts()">Visualize</button>
   </div>
