@@ -11,7 +11,7 @@
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
-      // Retrieve data from textarea and parse as numbers
+      // Retrieve data from textarea 
       const actualData = document.getElementById('dataInput').value;
       const datalist = actualData.split('\n').map(Number).filter(n => !isNaN(n));
 
@@ -27,7 +27,8 @@
       const container = document.getElementById('chartsContainer');
       container.innerHTML = ''; // Clear previous charts
 
-      // Iterate through each day's data
+      // Batch create chart divisions
+      const chartDivisions = [];
       for (let day = 0; day < totalDays; day++) {
         const dayData = datalist.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
 
@@ -39,11 +40,14 @@
           const chartDivision = document.createElement('div');
           chartDivision.id = dayChartId;
           container.appendChild(chartDivision);
-
-          // Draw the chart for the current day
-          drawChart(dayData, dayChartId, chartTitle);
+          chartDivisions.push({ dayData, chartDivision, chartTitle });
         }
       }
+
+      // Draw charts in a batch
+      chartDivisions.forEach(({ dayData, chartDivision, chartTitle }) => {
+        drawChart(dayData, chartDivision.id, chartTitle);
+      });
     }
 
     function drawChart(dayData, chartDivision, chartTitle) {
@@ -53,9 +57,8 @@
       data.addColumn('number', 'Activity');
 
       // Add data rows based on the day's activity data
-      for (let i = 0; i < dayData.length; i++) {
-        data.addRow([i, dayData[i]]);
-      }
+      const rows = dayData.map((activity, minute) => [minute, activity]);
+      data.addRows(rows);
 
       // Define chart options
       const options = {
@@ -75,8 +78,7 @@
         },
         vAxis: {
           title: 'Counts/Mins',
-        minValue:-10
-          ],
+          minValue: 0
         },
         legend: 'none',
         curveType: 'function', // Smooth curve for the line
@@ -102,4 +104,5 @@
   <!-- Container for displaying charts -->
   <div id="chartsContainer"></div>
 </body>
-  </html>
+</html>
+
