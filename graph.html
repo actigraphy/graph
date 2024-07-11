@@ -15,11 +15,7 @@
       const actualData = document.getElementById('dataInput').value;
       const datalist = actualData.split('\n').map(Number).filter(n => !isNaN(n));
 
-      // Basic validation for numeric data
-      if (datalist.length === 0) {
-        alert("No valid data provided. Please enter numeric values of data.");
-        return;
-      }
+    
 
       const minutesPerDay = 1440;
       const totalDays = Math.ceil(datalist.length / minutesPerDay);
@@ -59,31 +55,37 @@
       // Add data rows based on the day's activity data
       const rows = dayData.map((activity, minute) => [minute, activity]);
       data.addRows(rows);
-
       // Define chart options
       const options = {
-        title: chartTitle,
-        hAxis: {
-          title: 'Clock Time',
-          gridlines: { color: 'transparent' },
-          ticks: [
-            { v: 0, f: '0000' },
-            { v: 360, f: '0600' },
-            { v: 720, f: '1200' },
-            { v: 1080, f: '1800' },
-            { v: 1440, f: '0000' }
-          ],
-          minValue: 0,
-          maxValue: 1440
-        },
-        vAxis: {
-          title: 'Counts/Mins',
-          minValue: 0
-        },
-        legend: 'none',
+      title: chartTitle,
+      hAxis: {
+        title: 'Clock Time',
+        ticks: [
+          { v: 0, f: '0000' },
+          { v: 360, f: '0600' },
+          { v: 720, f: '1200' },
+          { v: 1080, f: '1800' },
+          { v: 1440, f: '0000' }
+        ],
+        minValue: 0,
+        maxValue: 1440,
+        gridlines: {
+          color: 'transparent'
+        }
+      },
+      vAxis: {
+        title: 'Counts/Mins',
+        minValue: 0,
+        gridlines: {
+          color: 'transparent'
+        }
+      },
+    legend: 'none',
         curveType: 'function', // Smooth curve for the line
         lineWidth: 2 // Customize line thickness
       };
+
+  
 
       // Create a new LineChart with the given options and data
       const chart = new google.visualization.LineChart(document.getElementById(chartDivision));
