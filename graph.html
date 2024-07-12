@@ -6,55 +6,47 @@
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">
     google.charts.load('current', {'packages':['corechart']});
-
-    // Function called when Google Charts is loaded
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
-      // Retrieve data from textarea
       const actualData = document.getElementById('dataInput').value;
-      const datalist = actualData.split('\n').map(Number).filter(n => !isNaN(n));
-
-      const minutesPerDay = 1440;
+      const datalist = actualData.split('\n').map(Number);
+      const minutesPerDay = 1441;
       const totalDays = Math.ceil(datalist.length / minutesPerDay);
 
+      const maxValue = Math.max(...datalist.filter(n => !isNaN(n)));
       const container = document.getElementById('chartsContainer');
-      container.innerHTML = ''; // Clear previous charts
+      container.innerHTML = '';
 
-      // Batch create chart divisions
-      const chartDivisions = [];
       for (let day = 0; day < totalDays; day++) {
-        const dayData = datalist.slice(day * minutesPerDay, (day + 1) * minutesPerDay);
+        const start = day * minutesPerDay;
+        const end = start + minutesPerDay;
+        const dayData = [];
 
-        if (dayData.length > 0) {
-          const dayChartId = 'day' + (day + 1) + 'Chart';
-          const chartTitle = 'Day ' + (day + 1);
-
-          // Create a new div for the chart
-          const chartDivision = document.createElement('div');
-          chartDivision.id = dayChartId;
-          container.appendChild(chartDivision);
-          chartDivisions.push({ dayData, chartDivision, chartTitle });
+        for (let minute = 0; minute < minutesPerDay; minute++) {
+          if (start + minute < datalist.length) {
+            dayData.push([minute, datalist[start + minute]]);
+          } else {
+            dayData.push([minute, NaN]);
+          }
         }
-      }
 
-      // Draw charts in a batch
-      chartDivisions.forEach(({ dayData, chartDivision, chartTitle }) => {
-        drawChart(dayData, chartDivision.id, chartTitle);
-      });
+        const chartId = `day${day + 1}Chart`;
+        const chartDiv = document.createElement('div');
+        chartDiv.id = chartId;
+        container.appendChild(chartDiv);
+
+        drawChart(dayData, chartId, `Day ${day + 1}`, maxValue);
+      }
     }
 
-    function drawChart(dayData, chartDivision, chartTitle) {
-      // Create a new DataTable for Google Charts
+    function drawChart(dayData, chartId, chartTitle, maxValue) {
       const data = new google.visualization.DataTable();
       data.addColumn('number', 'Minute');
       data.addColumn('number', 'Activity');
 
-      // Add data rows based on the day's activity data
-      const rows = dayData.map((activity, minute) => [minute, activity]);
-      data.addRows(rows);
+      data.addRows(dayData.map(([minute, activity]) => [minute, isNaN(activity) ? null : activity]));
 
-      // Define chart options
       const options = {
         title: chartTitle,
         hAxis: {
@@ -68,24 +60,21 @@
           ],
           minValue: 0,
           maxValue: 1440,
-          gridlines: {
-            color: 'transparent'
-          }
+          gridlines: { color: 'transparent' }
         },
         vAxis: {
           title: 'Counts/Mins',
-          minValue: 0,
-          gridlines: {
-            color: 'transparent'
-          }
+          minValue: -10,
+          maxValue: maxValue,
+          gridlines: { color: 'transparent' },
+          ticks: Array.from({ length: Math.ceil(maxValue / 100) + 1 }, (_, i) => i * 100)
         },
         legend: 'none',
-        curveType: 'function', // Smooth curve for the line
-        lineWidth: 2 // Customize line thickness
+        curveType: 'function',
+        lineWidth: 2
       };
 
-      // Create a new LineChart with the given options and data
-      const chart = new google.visualization.LineChart(document.getElementById(chartDivision));
+      const chart = new google.visualization.LineChart(document.getElementById(chartId));
       chart.draw(data, options);
     }
   </script>
@@ -93,14 +82,11 @@
 <body>
   <div>
     <h1>Actigraphy Data Visualization</h1>
-    <!-- Textarea for data input -->
     <p>Please enter numeric data (one value per line) for each day's activity:</p>
     <textarea id="dataInput" rows="10" cols="20"></textarea>
     <br>
-    <!-- Button to trigger visualization -->
     <button onclick="drawCharts()">Visualize</button>
   </div>
-  <!-- Container for displaying charts -->
   <div id="chartsContainer"></div>
 </body>
 </html>
