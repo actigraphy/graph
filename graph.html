@@ -11,7 +11,7 @@
     function drawCharts() {
       const actualData = document.getElementById('dataInput').value;
       const datalist = actualData.split('\n').map(Number);
-      const minutesPerDay = 1441;
+      const minutesPerDay = 1440;
       const totalDays = Math.ceil(datalist.length / minutesPerDay);
 
       const maxValue = Math.max(...datalist.filter(n => !isNaN(n)));
@@ -23,7 +23,7 @@
         const end = start + minutesPerDay;
         const dayData = [];
 
-        for (let minute = 0; minute < minutesPerDay; minute++) {
+        for (let minute = 1; minute <= minutesPerDay; minute++) {
           if (start + minute < datalist.length) {
             dayData.push([minute, datalist[start + minute]]);
           } else {
