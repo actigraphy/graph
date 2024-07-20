@@ -5,6 +5,7 @@
   <!-- Load Google Charts library -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">
+  //load neccesary chart
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(drawCharts);
 
@@ -17,6 +18,10 @@
       const maxValue = Math.max(...datalist.filter(n => !isNaN(n)));
       const container = document.getElementById('chartsContainer');
       container.innerHTML = '';
+
+      const color = document.getElementById('colorSelect').value;
+      const lineWidth = parseInt(document.getElementById('lineWidthSelect').value, 10);
+      const yAxisMax = parseFloat(document.getElementById('yAxisMax').value) || maxValue;
 
       for (let day = 0; day < totalDays; day++) {
         const start = day * minutesPerDay;
@@ -36,11 +41,11 @@
         chartDiv.id = chartId;
         container.appendChild(chartDiv);
 
-        drawChart(dayData, chartId, `Day ${day + 1}`, maxValue);
+        drawChart(dayData, chartId, `Day ${day + 1}`, color, lineWidth, yAxisMax);
       }
     }
 
-    function drawChart(dayData, chartId, chartTitle, maxValue) {
+    function drawChart(dayData, chartId, chartTitle, color, lineWidth, yAxisMax) {
       const data = new google.visualization.DataTable();
       data.addColumn('number', 'Minute');
       data.addColumn('number', 'Activity');
@@ -65,13 +70,14 @@
         vAxis: {
           title: 'Counts/Mins',
           minValue: -10,
-          maxValue: maxValue,
+          maxValue: yAxisMax,
           gridlines: { color: 'transparent' },
-          ticks: Array.from({ length: Math.ceil(maxValue / 100) + 1 }, (_, i) => i * 100)
+          ticks: Array.from({ length: Math.ceil(yAxisMax / 100) + 1 }, (_, i) => i * 100)
         },
         legend: 'none',
         curveType: 'function',
-        lineWidth: 2
+        lineWidth: lineWidth,
+        colors: [color]
       };
 
       const chart = new google.visualization.LineChart(document.getElementById(chartId));
@@ -85,8 +91,27 @@
     <p>Please enter data (one value per line) for each day's activity:</p>
     <textarea id="dataInput" rows="10" cols="20"></textarea>
     <br>
+    <label for="colorSelect">Line Color:</label>
+    <select id="colorSelect">
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="green">Green</option>
+      <option value="orange">Orange</option>
+    </select>
+    <br>
+    <label for="lineWidthSelect">Line Thickness:</label>
+    <select id="lineWidthSelect">
+      <option value="1">Thin</option>
+      <option value="2">Medium</option>
+      <option value="4">Thick</option>
+    </select>
+    <br>
+    <label for="yAxisMax">Y-Axis Max Value:</label>
+    <input type="number" id="yAxisMax" step="0.1" />
+    <br>
     <button onclick="drawCharts()">Visualize</button>
   </div>
   <div id="chartsContainer"></div>
 </body>
 </html>
+
